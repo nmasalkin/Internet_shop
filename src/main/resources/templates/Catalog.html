@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head xmlns:th="http://www.thymeleaf.org">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>MY - интернет магазин</title>
+    <link rel="stylesheet" href="/styles/Catalog.css">
+    <link rel="stylesheet" href="/styles/TopOnPage.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const priceRange = document.getElementById('priceRange');
+            const minPriceLabel = document.getElementById('minPrice');
+            const maxPriceLabel = document.getElementById('maxPrice');
+            const productsContainer = document.querySelector('.products');
+            const products = Array.from(productsContainer.querySelectorAll('.product'));
+
+            const sortOptionsSelect = document.getElementById('sort-options');
+            const productCountElement = document.getElementById('product-count');
+
+            // Функция для обновления максимальной цены
+            function updateMaxPrice() {
+                const maxPrice = products.reduce((max, product) => {
+                    const priceElement = product.querySelector('.product-price');
+                    const priceText = priceElement ? priceElement.dataset.price : '0';
+                    const price = parseFloat(priceText) || 0;
+                    return Math.max(max, price);
+                }, 0);
+
+                priceRange.max = maxPrice;
+                priceRange.value = maxPrice;
+                maxPriceLabel.textContent = maxPrice;
+                minPriceLabel.textContent = '0';
+            }
+
+            // Функция для обновления количества видимых товаров
+            function updateProductCount() {
+                const visibleProducts = products.filter(product => product.style.display !== 'none');
+                productCountElement.textContent = visibleProducts.length;
+            }
+
+            // Функция для фильтрации товаров
+            function filterProducts() {
+                const maxPrice = parseFloat(priceRange.value);
+                products.forEach(product => {
+                    const priceElement = product.querySelector('.product-price');
+                    const priceText = priceElement ? priceElement.dataset.price : '0';
+                    const price = parseFloat(priceText) || 0;
+
+                    if (price <= maxPrice) {
+                        product.style.display = '';
+                    } else {
+                        product.style.display = 'none';
+                    }
+                });
+
+                updateProductCount(); // Обновляем счётчик товаров после фильтрации
+            }
+
+            // Функция для сортировки товаров
+            function sortProducts() {
+                const selectedOption = sortOptionsSelect.value.split('-'); // Разделяем по "-"
+                const sortBy = selectedOption[0]; // price или name
+                const sortOrder = selectedOption[1]; // asc или desc
+
+                const sortedProducts = products.sort((a, b) => {
+                    if (sortBy === 'price') {
+                        const priceA = parseFloat(a.querySelector('.product-price').dataset.price) || 0;
+                        const priceB = parseFloat(b.querySelector('.product-price').dataset.price) || 0;
+                        return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+                    } else if (sortBy === 'name') {
+                        const nameA = a.querySelector('.product-title').textContent.trim().toLowerCase();
+                        const nameB = b.querySelector('.product-title').textContent.trim().toLowerCase();
+                        return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    }
+                });
+
+                productsContainer.innerHTML = '';
+                sortedProducts.forEach(product => productsContainer.appendChild(product));
+
+                updateProductCount(); // Обновляем счётчик товаров после сортировки
+            }
+
+            // События
+            priceRange.addEventListener('input', () => {
+                maxPriceLabel.textContent = priceRange.value;
+                filterProducts();
+            });
+
+            sortOptionsSelect.addEventListener('change', sortProducts);
+
+            // Инициализация
+            updateMaxPrice();
+            filterProducts();
+            sortProducts();
+
+            const cart = [];
+            const cartModal = document.getElementById('cart-modal');
+            const closeCart = document.getElementById('close-cart');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const totalPriceElement = document.getElementById('total-price');
+            const checkoutButton = document.getElementById('checkout-button');
+            const checkoutForm = document.getElementById('checkout-form');
+            const cartDataInput = document.getElementById('cart-data');
+
+            // Открытие и закрытие корзины
+            document.getElementById('top-cart-a').addEventListener('click', () => {
+                renderCart();
+                cartModal.style.display = 'block';
+            });
+
+            closeCart.addEventListener('click', () => {
+                cartModal.style.display = 'none';
+            });
+
+            // Добавление товара в корзину
+            document.querySelectorAll('.neon-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const productElement = event.target.closest('.product');
+                    const productId = productElement.dataset.id;
+                    const existingItem = cart.find(item => item.id === productId);
+
+                    if (existingItem) {
+                        existingItem.quantity += 1;
+                    } else {
+                        cart.push({ id: productId, quantity: 1 });
+                    }
+
+                    renderCart();
+                });
+            });
+
+            // Рендеринг корзины
+            function renderCart() {
+                cartItemsContainer.innerHTML = '';
+                let totalPrice = 0;
+
+                cart.forEach(item => {
+                    const productElement = document.querySelector(`.product[data-id="${item.id}"]`);
+                    const price = parseFloat(productElement.querySelector('.product-price').dataset.price);
+                    totalPrice += price * item.quantity;
+
+                    // Создаем отдельную ячейку для товара
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                <span class="cart-item-title">${productElement.querySelector('.product-title').textContent}</span>
+                <span class="cart-item-price">${price} ₽</span>
+                <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" class="quantity-input">
+                <button data-id="${item.id}" class="remove-item">Удалить</button>
+            `;
+
+                    cartItemsContainer.appendChild(cartItem);
+                });
+
+                totalPriceElement.textContent = totalPrice;
+
+                // Обновление количества товара
+                document.querySelectorAll('.quantity-input').forEach(input => {
+                    input.addEventListener('change', (event) => {
+                        const productId = event.target.dataset.id;
+                        const newQuantity = parseInt(event.target.value, 10);
+                        const cartItem = cart.find(item => item.id === productId);
+
+                        if (cartItem) {
+                            cartItem.quantity = newQuantity;
+                            renderCart();
+                        }
+                    });
+                });
+
+                // Удаление товара из корзины
+                document.querySelectorAll('.remove-item').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const productId = event.target.dataset.id;
+                        const index = cart.findIndex(item => item.id === productId);
+
+                        if (index !== -1) {
+                            cart.splice(index, 1);
+                            renderCart();
+                        }
+                    });
+                });
+            }
+
+            // Оформление заказа
+            checkoutButton.addEventListener('click', () => {
+                // Передаем только id и quantity товаров
+                const cartData = cart.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }));
+
+                // Преобразуем корзину в строку JSON
+                cartDataInput.value = JSON.stringify(cartData);
+                checkoutForm.submit();
+            });
+        });
+
+        document.getElementById('search-input-product').addEventListener('input', () => {
+            updateMaxPrice();
+        });
+    </script>
+</head>
+<body style="font-family: Arial, serif;">
+<div class="top">
+    <a href="/AdminMain"><img class="top-logo" src="/mediaFiles/logo_vect_circle.PNG" alt="logo"></a>
+    <div class="content">
+        <a class="top-buttons" href="/Catalog">
+            Каталог
+        </a>
+        <form class="search-form" action="/Catalog/searchProduct" method="get">
+            <input type="text" name="title" id="search-input-product" placeholder="Поиск...">
+            <button id="search-button" type="submit"><img id="search-icon" src="/mediaFiles/icon-search.png"></button>
+        </form>
+        <a class="top-buttons" id="top-cart-a">
+            Корзина
+        </a>
+        <a href="/" id="top-login-a"><img class="top-buttons" id="top-login" src="/mediaFiles/icon-user.png"></a>
+    </div>
+</div>
+<div class="main-content">
+    <div class="change-characteristics">
+        <div class="product-count">
+            Показано товаров: <span id="product-count">0</span>
+        </div>
+        <div class="slider-container">
+            <input type="range" min="0" max="1000" value="1000" class="slider" id="priceRange">
+            <div class="price-labels">
+                <span id="minPrice">0</span>
+                <span id="maxPrice">1000</span>
+            </div>
+        </div>
+        <div class="sort-options">
+            <label for="sort-options">Сортировать:</label>
+            <select id="sort-options">
+                <option value="price-asc">По цене ↑</option>
+                <option value="price-desc">По цене ↓</option>
+                <option value="name-asc">По названию от А до Я</option>
+                <option value="name-desc">По названию от Я до А</option>
+            </select>
+        </div>
+    </div>
+    <div class="products">
+        <div class="product" th:each="product : ${products}" th:data-id="${product.id}">
+            <div class="product-content" id="div">
+                <img class="product-image" src="/mediaFiles/Unknown.jpg">
+                <div class="product-info">
+                    <t class="product-title" th:text="${product.title}"></t>
+                    <t class="product-price" th:data-price="${product.price}" th:text="${product.price} + '₽'"></t>
+                    <t class="product-description" th:text="${product.description}"></t>
+                    <b class="neon-button" id="to-basket-btn">В корзину</b>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-cart" class="close">&times;</span>
+            <h2>Корзина</h2>
+            <div id="cart-items"></div>
+            <div class="cart-footer">
+                <p>Итоговая сумма: <span id="total-price">0</span> ₽</p>
+                <button id="checkout-button" class="neon-button">Оформить заказ</button>
+            </div>
+        </div>
+    </div>
+    <form id="checkout-form" action="/Catalog/makeOrder" method="post" style="display: none;">
+        <input type="hidden" name="cart-data" id="cart-data">
+    </form>
+</div>
+</body>
+</html>

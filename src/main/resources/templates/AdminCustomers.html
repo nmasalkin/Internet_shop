@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказчики</title>
+    <link rel="stylesheet" href="/styles/admin/AdminCustomers.css">
+    <link rel="stylesheet" href="/styles/admin/AdminTopOnPages.css">
+    <script>
+        function showAddCustomerWindow() {
+            document.querySelector(".add-customer-window-container").style.display = "flex";
+        }
+
+        function closeAddCustomerWindow() {
+            document.querySelector(".add-customer-window-container").style.display = "none";
+        }
+
+        function showEditCustomerWindow(id) {
+            document.querySelector(".edit-customer-window-container").style.display = "flex";
+            document.getElementById("edit-customer-id").value = id;
+            document.getElementById("edit-customer-lastname").value = document.getElementById("customer-fullname-" + id).innerHTML.split(" ")[0];
+            document.getElementById("edit-customer-firstname").value = document.getElementById("customer-fullname-" + id).innerHTML.split(" ")[1];
+            document.getElementById("edit-customer-patronymic").value = (document.getElementById("customer-fullname-" + id).innerHTML.split(" ")[2] === undefined ? "" : document.getElementById("customer-fullname-" + id).innerHTML.split(" ")[2]);
+            document.getElementById("edit-customer-address").value = document.getElementById("customer-address-" + id).innerHTML;
+            document.getElementById("edit-customer-phone_number").value = document.getElementById("customer-phone_number-" + id).innerHTML;
+            document.getElementById("edit-customer-email").value = document.getElementById("customer-email-" + id).innerHTML;
+        }
+
+        function closeEditCustomerWindow() {
+            document.querySelector(".edit-customer-window-container").style.display = "none";
+        }
+
+        function showDeleteCustomerWindow(id) {
+            document.querySelector(".delete-customer-window-container").style.display = "flex";
+            document.getElementById("delete-customer-id").value = id;
+        }
+
+        function closeDeleteCustomerWindow() {
+            document.querySelector(".delete-customer-window-container").style.display = "none";
+        }
+    </script>
+</head>
+<body>
+<div class="top">
+    <a href="/AdminMain"><img class="top-logo" src="/mediaFiles/logo_vect_circle.PNG" alt="logo"></a>
+    <div class="content">
+        <a class="top-buttons" href="/AdminCustomers">
+            Заказчики
+        </a>
+        <a class="top-buttons" href="/AdminOrders">
+            Заказы
+        </a>
+        <a class="top-buttons" href="/AdminProducts">
+            Товары
+        </a>
+        <form class="search-form" action="/AdminCustomers/searchCustomer" method="get">
+            <input type="text" name="fullname" id="search-input-product" placeholder="Поиск...">
+            <button id="search-button" type="submit"><img id="search-icon" src="/mediaFiles/icon-search.png"></button>
+        </form>
+        <a href="/" id="top-login-a"><img class="top-buttons" id="top-login" src="/mediaFiles/icon-user.png"></a>
+    </div>
+</div>
+<div class="customers-header">
+    <t class="customers-count" th:text="${customers.size()}"></t>
+    <button class="add-customer-button" onclick="showAddCustomerWindow()">Добавить заказчика</button>
+</div>
+<div class="main-content">
+    <div class="each-customer" th:each="customer : ${customers}">
+        <div class="customer">
+            <t class="customer-fullname" th:id="'customer-fullname-' + ${customer.id}"
+               th:text="${customer.lastName + ' ' + customer.firstName + (customer.patronymic != null ? ' ' + customer.patronymic : '')}"></t>
+            <t class="customer-email" th:id="'customer-email-' + ${customer.id}" th:text="${customer.email}"></t>
+            <t class="customer-phone_number" th:id="'customer-phone_number-' + ${customer.id}" th:text="${customer.phoneNumber}"></t>
+            <t class="customer-address" th:id="'customer-address-' + ${customer.id}" th:text="${customer.address}"></t>
+            <div class="customer-buttons">
+                <button class="customer-edit-button" th:onclick="'showEditCustomerWindow(' + ${customer.id} + ')'">
+                    Редактировать
+                </button>
+                <button class="customer-delete-button" th:onclick="'showDeleteCustomerWindow(' + ${customer.id} + ')' ">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="add-customer-window-container" id="add-customer-window-container">
+        <div class="add-customer-window">
+            <form class="add-customer-window-content" action="AdminCustomers/saveCustomer" method="post">
+                <input id="add-customer-lastname" name="lastName" type="text" placeholder="Фамилия">
+                <input id="add-customer-firstname" name="firstName" type="text" placeholder="Имя">
+                <input id="add-customer-patronymic"  name="patronymic" type="text" placeholder="Отчество">
+                <input id="add-customer-address" name="address" type="text" placeholder="Адрес">
+                <input id="add-customer-phone_number" name="phoneNumber" type="number" placeholder="Телефон">
+                <input id="add-customer-email" name="email" type="text" placeholder="Почта">
+                <div class="add-customer-window-buttons">
+                    <button class="add-customer-window-button" type="button" onclick="closeAddCustomerWindow()">Отмена
+                    </button>
+                    <button class="add-customer-window-button" type="submit" style="margin-left: 60%">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="edit-customer-window-container" id="edit-customer-window-container">
+        <div class="edit-customer-window">
+            <form class="edit-customer-window-content" action="AdminCustomers/editCustomer" method="post">
+                <input id="edit-customer-id" name="id" type="hidden">
+                <input id="edit-customer-lastname" name="lastName" type="text" placeholder="Фамилия">
+                <input id="edit-customer-firstname" name="firstName" type="text" placeholder="Имя">
+                <input id="edit-customer-patronymic" name="patronymic" type="text" placeholder="Отчество">
+                <input id="edit-customer-address" name="address" type="text" placeholder="Адрес">
+                <input id="edit-customer-phone_number" name="phoneNumber" type="number" placeholder="Телефон">
+                <input id="edit-customer-email" name="email" type="text" placeholder="Почта">
+                <div class="edit-customer-window-buttons">
+                    <button class="edit-customer-window-button" type="button" onclick="closeEditCustomerWindow()">
+                        Отмена
+                    </button>
+                    <button class="edit-customer-window-button" type="submit" style="margin-left: 60%">Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="delete-customer-window-container" id="delete-customer-window-container">
+        <div class="delete-customer-window">
+            <form class="delete-customer-window-content" action="AdminCustomers/deleteCustomer" method="post">
+                <input id="delete-customer-id" name="id" type="hidden">
+                <label id="delete-customer-label">Вы действительно хотите удалить заказчика?</label>
+                <div class="delete-customer-window-buttons">
+                    <button class="delete-customer-window-button" type="button" onclick="closeDeleteCustomerWindow()">
+                        Отмена
+                    </button>
+                    <button class="delete-customer-window-button" type="submit" style="margin-left: 20%">Удалить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

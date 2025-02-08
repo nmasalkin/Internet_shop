@@ -1,0 +1,9 @@
+body {
+    background: whitesmoke;
+    text-decoration: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.main-content {
+}

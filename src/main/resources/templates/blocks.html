@@ -1,0 +1,59 @@
+<div th:fragment="top">
+    <div class="top">
+        <a href="/"><img class="top-logo" src="/mediaFiles/logo_vect_circle.PNG" alt="logo"></a>
+        <div class="content">
+            <a href="/Catalog"><button href="/Catalog" class="neon-button">Каталог</button></a>
+            <div class="search-string">
+                <input type="text" class="search-input" placeholder="Поиск...">
+                <button class="neon-button">Поиск <img class="top-icon" src="/mediaFiles/icon-search.png">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="neon-button" id="basket-btn">Корзина <img class="top-icon" src="/mediaFiles/icon-basket.png"></button>
+            <a href="/AdminMain"><button href="/AdminMain" class="neon-button">Войти <img class="top-icon" src="/mediaFiles/icon-user.png"></button></a>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="adminTop">
+    <div class="top">
+        <a href="/AdminMain"><img class="top-logo" src="/mediaFiles/logo_vect_circle.PNG" alt="logo"></a>
+        <div class="content">
+            <a class="top-buttons" href="/AdminCustomers">
+                Заказчики
+            </a>
+            <a class="top-buttons" href="/AdminOrders">
+                Заказы
+            </a>
+            <a class="top-buttons" href="/AdminProducts">
+                Товары
+            </a>
+            <form>
+                <input type="text" class="search-input" placeholder="Поиск...">
+                <button class="neon-button">Поиск</button>
+            </form>
+            <a href="/" id="top-login-a"><img class="top-buttons" id="top-login" src="/mediaFiles/icon-user.png"></a>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="hamster">
+    <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
+        <div class="wheel"></div>
+        <div class="hamster">
+            <div class="hamster__body">
+                <div class="hamster__head">
+                    <div class="hamster__ear"></div>
+                    <div class="hamster__eye"></div>
+                    <div class="hamster__nose"></div>
+                </div>
+                <div class="hamster__limb hamster__limb--fr"></div>
+                <div class="hamster__limb hamster__limb--fl"></div>
+                <div class="hamster__limb hamster__limb--br"></div>
+                <div class="hamster__limb hamster__limb--bl"></div>
+                <div class="hamster__tail"></div>
+            </div>
+        </div>
+        <div class="spoke"></div>
+    </div>
+</div>

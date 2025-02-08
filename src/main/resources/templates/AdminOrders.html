@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказы</title>
+    <link rel="stylesheet" href="/styles/admin/AdminOrders.css">
+    <link rel="stylesheet" href="/styles/admin/AdminTopOnPages.css">
+    <script>
+        function showAddOrderWindow() {
+            document.getElementsByClassName("add-order-window-container")[0].style.display = "flex";
+
+        }
+
+        function closeAddOrderWindow() {
+            document.getElementsByClassName("add-order-window-container")[0].style.display = "none";
+        }
+
+        function showEditOrderWindow(id) {
+            document.getElementsByClassName("edit-order-window-container")[0].style.display = "flex";
+            document.getElementById("edit-order-id").value = id;
+            document.getElementById("edit-order-lastname").value = document.getElementById("order-customer-" + id).innerHTML.split(" ")[0];
+            document.getElementById("edit-order-firstname").value = document.getElementById("order-customer-" + id).innerHTML.split(" ")[1];
+            document.getElementById("edit-order-patronymic").value = (document.getElementById("order-customer-" + id).innerHTML.split(" ")[2] === undefined ? "" : document.getElementById("order-customer-" + id).innerHTML.split(" ")[2]);
+            let formattedDate = document.getElementById("order-registration-date-" + id).innerHTML;
+            let parts = formattedDate.split('/');
+            let formattedDateForInput = parts[2] + '-' + ('0' + parts[1]).slice(-2) + '-' + ('0' + parts[0]).slice(-2);
+            document.getElementById("edit-order-registration-date").value = formattedDateForInput;
+            //document.getElementById("edit-order-registration-date").value = document.getElementById("order-registration-date-" + id).innerHTML;
+            document.getElementById("edit-order-shipping-cost").value = document.getElementById("order-shipping-cost-" + id).innerHTML;
+            document.getElementById("edit-order-cost").value = document.getElementById("order-cost-" + id).innerHTML;
+            const paymentMethod = document.getElementById("order-payment-method-" + id).innerHTML.trim();
+            if (paymentMethod === "Наличными при получении"){
+                document.getElementById("edit-order-payment-method").value = "cash";
+            } else if (paymentMethod === "Картой при получении"){
+                document.getElementById("edit-order-payment-method").value = "card";
+            } else if (paymentMethod === "Онлайн-оплата"){
+                document.getElementById("edit-order-payment-method").value = "online";
+            }
+            const status = document.getElementById("order-status-" + id).innerHTML.trim();
+            if (status === "Обрабатывается"){
+                document.getElementById("edit-order-status").value = "processing";
+            } else if (status === "Доставляется"){
+                document.getElementById("edit-order-status").value = "shipping";
+            } else if (status === "Вручено"){
+                document.getElementById("edit-order-status").value = "delivered";
+            } else if (status === "Отменен"){
+                document.getElementById("edit-order-status").value = "canceled";
+            }
+        }
+
+        function closeEditOrderWindow() {
+            document.getElementsByClassName("edit-order-window-container")[0].style.display = "none";
+        }
+
+        function showDeleteOrderWindow(id) {
+            document.getElementsByClassName("delete-order-window-container")[0].style.display = "flex";
+            document.getElementById("delete-order-id").value = id;
+        }
+
+        function closeDeleteOrderWindow() {
+            document.getElementsByClassName("delete-order-window-container")[0].style.display = "none";
+        }
+
+        function showInfoOrderWindow(id) {
+            document.getElementsByClassName("info-order-window-container")[0].style.display = "flex";
+            var productsContainer = document.getElementsByClassName("order-products-");
+            productsContainer.style.display = "none";
+        }
+
+        function closeInfoOrderWindow(event) {
+            if (!event.target.contains(document.getElementById('info-order-window-container'))) return;
+            document.getElementsByClassName("info-order-window-container")[0].style.display = "none";
+        }
+
+        document.addEventListener('click', closeInfoOrderWindow);
+    </script>
+</head>
+<body>
+<div class="top">
+    <a href="/AdminMain"><img class="top-logo" src="/mediaFiles/logo_vect_circle.PNG" alt="logo"></a>
+    <div class="content">
+        <a class="top-buttons" href="/AdminCustomers">
+            Заказчики
+        </a>
+        <a class="top-buttons" href="/AdminOrders">
+            Заказы
+        </a>
+        <a class="top-buttons" href="/AdminProducts">
+            Товары
+        </a>
+        <form class="search-form" action="/AdminOrders/searchOrder" method="get">
+            <input type="text" name="fullname" id="search-input-product" placeholder="Поиск...">
+            <button id="search-button" type="submit"><img id="search-icon" src="/mediaFiles/icon-search.png"></button>
+        </form>
+        <a href="/" id="top-login-a"><img class="top-buttons" id="top-login" src="/mediaFiles/icon-user.png"></a>
+    </div>
+</div>
+<div class="orders-header">
+    <t class="orders-count" th:text="${orders.size()}"></t>
+    <button class="add-order-button" onclick="showAddOrderWindow()">Добавить заказ</button>
+</div>
+<div class="main-content">
+    <div class="each-order" th:each="order : ${orders}">
+        <div class="order">
+            <t class="order-customer" th:id="'order-customer-' + ${order.id}"
+               th:text="${order.customer.lastName + ' ' + order.customer.firstName + (order.customer.patronymic != null ? ' ' + order.customer.patronymic : '')}"></t>
+            <t class="order-registration-date" th:id="'order-registration-date-' + ${order.id}"
+               th:text="${#temporals.format(order.registrationDate, 'dd/MM/yyyy')}"></t>
+            <t class="order-shipping-cost" th:id="'order-shipping-cost-' + ${order.id}"
+               th:text="${order.shippingCost}"></t>
+            <div class="order-second-row">
+                <t class="order-cost" th:id="'order-cost-' + ${order.id}" th:text="${order.orderCost}"></t>
+                <t class="order-payment-method" th:id="'order-payment-method-' + ${order.id}"
+                   th:text="${order.paymentMethod}"></t>
+                <t class="order-status" th:id="'order-status-' + ${order.id}" th:text="${order.status}"></t>
+            </div>
+            <div class="order-buttons">
+                <button class="order-edit-button" th:onclick="'showEditOrderWindow(' + ${order.id} + ')'">
+                    Редактировать
+                </button>
+                <button class="order-delete-button" th:onclick="'showDeleteOrderWindow(' + ${order.id} + ')' ">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="info-order-window-container" id="info-order-window-container">
+        <div class="info-order-window" id="info-order-window">
+            <div class="info-order-window-content">
+                <div class="each-orderProduct" th:each="orderProduct : ${orderProducts}">
+                    <div class="orderProduct">
+                        <t class="orderProduct-title" th:text="${orderProduct.getProduct().title}"></t>
+                        <t class="orderProduct-price" th:text="${orderProduct.getProduct().price}"></t>
+                        <t class="orderProduct-quantity" th:text="${orderProduct.getQuantity()}"></t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="edit-order-window-container" id="edit-order-window-container">
+        <div class="edit-order-window">
+            <form class="edit-order-window-content" action="AdminOrders/editOrder" method="post">
+                <input id="edit-order-id" name="id" type="hidden">
+                <input id="edit-order-lastname" name="lastName" type="text" placeholder="Фамилия">
+                <input id="edit-order-firstname" name="firstName" type="text" placeholder="Имя">
+                <input id="edit-order-patronymic" name="patronymic" type="text" placeholder="Отчество">
+                <input id="edit-order-registration-date" name="registrationDate" type="date" placeholder="Дата оформления">
+                <input id="edit-order-shipping-cost" name="shippingCost" type="number" placeholder="Стоимость доставки">
+                <input id="edit-order-cost" name="orderCost" type="number" placeholder="Стоимость заказа">
+                <select id="edit-order-payment-method" name="paymentMethod">
+                    <option value="cash">Наличными при получении</option>
+                    <option value="card">Картой при получении</option>
+                    <option value="online">Онлайн-оплата</option>
+                </select>
+                <select id="edit-order-status" name="status" type="text" placeholder="Статус">
+                    <option value="processing">Обрабатывается</option>
+                    <option value="shipping">Доставляется</option>
+                    <option value="delivered">Вручено</option>
+                    <option value="canceled">Отменен</option>
+                </select>
+                <div class="edit-order-window-buttons">
+                    <button class="edit-order-window-button" type="button" onclick="closeEditOrderWindow()">
+                        Отмена
+                    </button>
+                    <button class="edit-order-window-button" type="submit" style="margin-left: 60%">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="delete-order-window-container" id="delete-order-window-container">
+        <div class="delete-order-window">
+            <form class="delete-order-window-content" action="/AdminOrders/deleteOrder" method="post">
+                <input id="delete-order-id" name="id" type="hidden">
+                <label id="delete-order-label">Вы действительно хотите удалить заказ?</label>
+                <div class="delete-order-window-buttons">
+                    <button class="delete-order-window-button" type="button" onclick="closeDeleteOrderWindow()">
+                        Отмена
+                    </button>
+                    <button class="delete-order-window-button" type="submit" style="margin-left: 20%">Удалить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

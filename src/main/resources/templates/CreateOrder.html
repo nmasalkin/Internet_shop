@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head xmlns:th="http://www.thymeleaf.org">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Оформление заказа - интернет магазин</title>
+    <link rel="stylesheet" href="/styles/CreateOrder.css">
+    <script>
+        // Функция для расчета итоговой суммы
+        function calculateTotal() {
+            const cartItems = document.querySelectorAll('.cart-item');
+            let total = 0;
+
+            // Подсчитываем стоимость всех товаров
+            cartItems.forEach(item => {
+                const priceText = item.querySelector('.cart-item-price').innerText;
+                const price = parseFloat(priceText.replace(' ₽', '')) || 0;
+                const quantityText = item.querySelector('.cart-item-quantity').innerText;
+                const quantity = parseInt(quantityText.replace('Количество: ', '')) || 0;
+                total += price * quantity;
+            });
+
+            // Добавляем стоимость доставки
+            const shippingCost = parseFloat(document.getElementById('shippingCost').value) || 0;
+            total += shippingCost;
+
+            // Обновляем отображение итоговой суммы в поле input
+            document.getElementById('total-amount').value = total.toFixed(0);
+        }
+
+        // Рассчитываем итоговую сумму при загрузке страницы
+        document.addEventListener('DOMContentLoaded', calculateTotal);
+    </script>
+</head>
+<body style="font-family: Arial, serif;">
+<div class="main-content">
+    <h1>Оформление заказа</h1>
+    <div class="order-summary">
+        <h2>Ваши товары:</h2>
+        <div id="cart-items">
+            <div th:each="cartDto : ${cartDtos}">
+                <div class="cart-item">
+                    <span class="cart-item-title" th:text="${cartDto.product.title}"></span>
+                    <span class="cart-item-price" th:text="${cartDto.product.price} + ' ₽'"></span>
+                    <span class="cart-item-quantity" th:text="'Количество: ' + ${cartDto.quantity}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="checkout-form" action="/CreateOrder/createOrder" method="post">
+        <h2>Данные заказчика</h2>
+        <label for="firstName">Имя:</label>
+        <input type="text" id="firstName" name="firstName" required><br>
+
+        <label for="lastName">Фамилия:</label>
+        <input type="text" id="lastName" name="lastName" required><br>
+
+        <label for="patronymic">Отчество:</label>
+        <input type="text" id="patronymic" name="patronymic"><br>
+
+        <label for="address">Адрес доставки:</label>
+        <input type="text" id="address" name="address" required><br>
+
+        <label for="phoneNumber">Номер телефона:</label>
+        <input type="number" id="phoneNumber" name="phoneNumber" required><br>
+
+        <label for="email">Электронная почта:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <h2>Данные заказа</h2>
+        <label for="paymentMethod">Метод оплаты:</label>
+        <select id="paymentMethod" name="paymentMethod" required>
+            <option value="card">Онлайн-оплата</option>
+            <option value="cash">Наличными при получении</option>
+            <option value="cash">Картой при получении</option>
+        </select><br>
+
+        <label for="shippingCost">Стоимость доставки:</label>
+        <input type="number" id="shippingCost" name="shippingCost" value="200" readonly><br>
+
+        <h2>Итого: </h2>
+        <input type="number" id="total-amount" name="totalAmount" value="0" readonly><br>
+
+        <button type="submit" id="checkout-button">Оформить заказ</button>
+    </form>
+</div>
+</body>
+</html>
